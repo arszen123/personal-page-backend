@@ -52,7 +52,7 @@ tags:
 
 paths:
   /authentication/login:
-    x-swagger-router-controller: user
+    x-swagger-router-controller: auth
     post:
       summary: Authenticate the user
       operationId: login
@@ -83,7 +83,7 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResponse'
   /authentication/logout:
-    x-swagger-router-controller: user
+    x-swagger-router-controller: auth
     post:
       summary: Log out the user
       operationId: logout
