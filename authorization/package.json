@@ -1,0 +1,19 @@
+{
+  "name": "authorization",
+  "version": "1.0.0",
+  "description": "Authorization for personal page",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon app.js",
+    "start": "node app.js"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.4"
+  },
+  "author": "arszen123",
+  "license": "ISC",
+  "dependencies": {
+    "oauth2-server": "^3.0.1"
+  }
+}

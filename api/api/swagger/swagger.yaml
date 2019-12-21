@@ -1,0 +1,751 @@
+swagger: "2.0"
+info:
+  version: "0.0.1"
+  title: Personal Page APP
+# during dev, should point to your local machine
+host: localhost:8080
+## basePath prefixes all resource paths
+basePath: /
+##
+schemes:
+  # tip: remove http to make production-grade
+  - http
+  - https
+# format of bodies a client can send (Content-Type)
+consumes:
+  - application/json
+# format of the responses to the client (Accepts)
+produces:
+  - application/json
+#security:
+#  - OAuth2: []
+#  - Bearer: []
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
+  OAuth2:
+    type: oauth2
+    flow: accessCode
+    authorizationUrl: https://localhost:8080/oauth/authorize
+    tokenUrl: https://localhost:8080/oauth/token
+    scopes:
+      read: Grants read access
+      write: Grants write access
+      admin: Grants access to admin operations
+tags:
+  - name: auth
+    description: Authenticate the user
+  - name: user
+    description: User base operations
+  - name: education
+    description: User education operations
+  - name: skill
+    description: User skill operations
+  - name: work-experience
+    description: User work experience operations
+  - name: language
+    description: User language operations
+  - name: contact
+    description: User contact operations
+
+paths:
+  /authentication/login:
+    x-swagger-router-controller: user
+    post:
+      summary: Authenticate the user
+      operationId: login
+      tags:
+        - auth
+      parameters:
+        - in: body
+          name: auth
+          description: Authentication credentials
+          required: true
+          schema:
+            $ref: '#/definitions/UserAuth'
+      responses:
+        "200":
+          description: "Default response"
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+                description: User bearer token
+        401:
+          description: "Wrong credentials"
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        default:
+          description: "General error"
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /authentication/logout:
+    x-swagger-router-controller: user
+    post:
+      summary: Log out the user
+      operationId: logout
+      tags:
+        - auth
+      security:
+        - Bearer: []
+      parameters:
+        - in: body
+          name: token
+          description: user bearer token
+          required: true
+          schema:
+            type: object
+            required:
+              - token
+            properties:
+              token:
+                type: string
+                description: User bearer token
+      responses:
+        "200":
+          description: "Default response"
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                description: Wheter the logout was succees or not.
+        default:
+          description: "General error"
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /user:
+    x-swagger-router-controller: user
+    post:
+      summary: Create user
+      operationId: createUser
+      tags:
+        - user
+      parameters:
+        - in: body
+          name: user
+          description: The user to create with credentials
+          required: true
+          schema:
+            $ref: '#/definitions/UserWithCredentials'
+      responses:
+        "200":
+          description: "The user created successfully"
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+                description: User token
+        409:
+          description: "A user with the email is already exists"
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        default:
+          description: "General error"
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    get:
+      summary: Get user
+      operationId: getUser
+      tags:
+        - user
+      security:
+        - Bearer: []
+      responses:
+        "200":
+          description: "The logged in user data"
+          schema:
+            $ref: '#/definitions/User'
+  /user/details:
+    x-swagger-router-controller: user
+    put:
+      summary: Update user details
+      operationId: updateUserDetails
+      tags:
+        - user
+      security:
+        - Bearer: []
+      parameters:
+        - name: user
+          in: body
+          schema:
+            $ref: '#/definitions/UserDetails'
+      responses:
+        "200":
+          description: "Default response"
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                description: Wheter the logout was succees or not.
+        "400":
+          description: "General error"
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    get:
+      summary: Get user details
+      operationId: getUserDetails
+      tags:
+        - user
+      security:
+        - Bearer: []
+      responses:
+        "200":
+          description: "Default response"
+          schema:
+            $ref: '#/definitions/UserDetails'
+        "400":
+          description: "General error"
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /user/education:
+    x-swagger-router-controller: education
+    post:
+      summary: Create user education
+      operationId: createEducation
+      tags:
+        - education
+      security:
+        - Bearer: []
+      parameters:
+        - name: education
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Education'
+      responses:
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /user/education/{id}:
+    x-swagger-router-controller: education
+    put:
+      summary: Update user education
+      operationId: updateEducation
+      tags:
+        - education
+      security:
+        - Bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: education
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Education'
+      responses:
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    delete:
+      summary: Delete user education
+      operationId: deleteEducation
+      tags:
+        - education
+      security:
+        - Bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      responses:
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /user/educations:
+    x-swagger-router-controller: education
+    get:
+      summary: Get user education
+      operationId: getEducations
+      tags:
+        - education
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: The list of user educations
+          schema:
+            $ref: '#/definitions/EducationsResponse'
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /user/skills:
+    x-swagger-router-controller: skill
+    post:
+      summary: Create user skills
+      operationId: createSkills
+      tags:
+        - skill
+      security:
+        - Bearer: []
+      parameters:
+        - name: skill
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Skills'
+      responses:
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    get:
+      summary: Get user skills
+      operationId: getSkills
+      tags:
+        - skill
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: The list of user skills
+          schema:
+            type: array
+            items:
+              - type: string
+          examples:
+            value: ['Skill1','Skill2']
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /user/work-experience:
+    x-swagger-router-controller: work_experience
+    post:
+      summary: Create user work experience
+      operationId: createWorkExperience
+      tags:
+        - work-experience
+      security:
+        - Bearer: []
+      parameters:
+        - name: experience
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/WorkExperience'
+      responses:
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /user/work-experience/{id}:
+    x-swagger-router-controller: work_experience
+    put:
+      summary: Update user work experience
+      operationId: updateWorkExperience
+      tags:
+        - work-experience
+      security:
+        - Bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: experience
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/WorkExperience'
+      responses:
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    delete:
+      summary: Delete user work experience
+      operationId: deleteWorkExperience
+      tags:
+        - work-experience
+      security:
+        - Bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      responses:
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /user/work-experiences:
+    x-swagger-router-controller: work_experience
+    get:
+      summary: Get user experience
+      operationId: getWorkExperiences
+      tags:
+        - work-experience
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: The list of user experiences
+          schema:
+            $ref: '#/definitions/WorkExperiencesResponse'
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /user/language:
+    x-swagger-router-controller: language
+    post:
+      summary: Create user language
+      operationId: createLanguage
+      tags:
+        - language
+      security:
+        - Bearer: []
+      parameters:
+        - name: language
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Language'
+      responses:
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /user/language/{id}:
+    x-swagger-router-controller: language
+    put:
+      summary: Update user language
+      operationId: updateLanguage
+      tags:
+        - language
+      security:
+        - Bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: language
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Language'
+      responses:
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    delete:
+      summary: Delete user language
+      operationId: deleteLanguage
+      tags:
+        - language
+      security:
+        - Bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      responses:
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /user/languages:
+    x-swagger-router-controller: language
+    get:
+      summary: Get user language
+      operationId: getLanguage
+      tags:
+        - language
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: The list of user languages
+          schema:
+            $ref: '#/definitions/LanguagesResponse'
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /user/contact:
+    x-swagger-router-controller: contact
+    post:
+      summary: Create user contact
+      operationId: createContact
+      tags:
+        - contact
+      security:
+        - Bearer: []
+      parameters:
+        - name: contact
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Contact'
+      responses:
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /user/contact/{id}:
+    x-swagger-router-controller: contact
+    put:
+      summary: Update user contact
+      operationId: updateContact
+      tags:
+        - contact
+      security:
+        - Bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: contact
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Contact'
+      responses:
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    delete:
+      summary: Delete user contact
+      operationId: deleteContact
+      tags:
+        - contact
+      security:
+        - Bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      responses:
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /user/contacts:
+    x-swagger-router-controller: contact
+    get:
+      summary: Get user contacts
+      operationId: getContacts
+      tags:
+        - contact
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: The list of user contacts
+          schema:
+            $ref: '#/definitions/ContactsResponse'
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+  /swagger:
+    x-swagger-pipe: swagger_raw
+# complex objects have schema definitions
+definitions:
+  User:
+    required:
+      - first_name
+      - last_name
+      - email
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+        format: email
+  UserWithCredentials:
+    allOf:
+      - $ref: '#/definitions/User'
+      - type: object
+        required:
+          - password
+        properties:
+          password:
+            type: string
+            format: password
+  UserAuth:
+    required:
+      - email
+      - password
+    properties:
+      email:
+        type: string
+        format: email
+      password:
+        type: string
+        format: password
+  Education:
+    required:
+      - type
+      - institute
+      - specialization
+      - from
+      - to
+    properties:
+      type:
+        type: string
+        enum: ['base', 'high', 'uni', 'online']
+      institute:
+        type: string
+      specialization:
+        type: string
+      from:
+        type: string
+        format: date
+      to:
+        type: string
+        format: date
+  EducationResponse:
+    allOf:
+      - type: object
+        required:
+          - id
+        properties:
+          id:
+            type: string
+      - $ref: '#/definitions/Education'
+  Educations:
+    type: array
+    items:
+      $ref: '#/definitions/Education'
+  EducationsResponse:
+    type: array
+    items:
+      $ref: '#/definitions/EducationResponse'
+  WorkExperience:
+    required:
+      - company_name
+      - position
+      - from
+    properties:
+      company_name:
+        type: string
+      position:
+        type: string
+      is_current:
+        description: Is currently working here
+        type: boolean
+      description:
+        type: string
+      from:
+        type: string
+      to:
+        type: string
+  WorkExperienceResponse:
+    allOf:
+      - type: object
+        required:
+          - id
+        properties:
+          id:
+            type: integer
+      - $ref: '#/definitions/WorkExperience'
+  WorkExperiencesResponse:
+    type: array
+    items:
+      $ref: '#/definitions/WorkExperienceResponse'
+  Language:
+    required:
+      - lang_id
+      - lang_level_id
+    properties:
+      lang_id:
+        type: string
+      lang_level_id:
+        type: string
+        enum: ['basic','conversant','proficient','fluent','native','bilingual']
+  LanguageResponse:
+    allOf:
+      - type: object
+        required:
+          - id
+        properties:
+          id:
+            type: integer
+      - $ref: '#/definitions/Language'
+  LanguagesResponse:
+    type: array
+    items:
+      $ref: '#/definitions/LanguageResponse'
+  Contact:
+    required:
+      - type
+      - value
+    properties:
+      type:
+        type: string
+        enum: ['email','phone','url','other']
+      other_type:
+        type: string
+        description: If `type` is "other" you can name it.
+      value:
+        type: string
+  ContactResponse:
+    allOf:
+      - type: object
+        required:
+          - id
+        properties:
+          id:
+            type: integer
+      - $ref: '#/definitions/Contact'
+  ContactsResponse:
+    type: array
+    items:
+      $ref: '#/definitions/ContactResponse'
+  UserDetails:
+    allOf:
+      - $ref: '#/definitions/User'
+      - type: object
+        properties:
+          birth_place:
+            type: string
+          birth_date:
+            type: string
+            format: date
+          living_place:
+            type: string
+  ErrorResponse:
+    required:
+      - message
+    properties:
+      message:
+        type: string
+      code:
+        type: string
+      statusCode:
+        type: integer
+  Skills:
+    required:
+      - skill
+    properties:
+      skill:
+        type: array
+        items:
+          - type: string
+    example:
+      skill: ["Skill1","Skill2"]
