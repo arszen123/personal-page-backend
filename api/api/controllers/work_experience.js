@@ -15,6 +15,10 @@ async function createWorkExperience(req, res) {
   let userId = req.auth.user_id;
   let experience = req.swagger.params.experience.value || {};
   experience.userId = ObjectId(userId);
+  experience.from = new Date(experience.from);
+  if (experience.to) {
+    experience.to = new Date(experience.to);
+  }
   req.db.collection('experience').insertOne(experience);
   return res.json({success: true});
 }

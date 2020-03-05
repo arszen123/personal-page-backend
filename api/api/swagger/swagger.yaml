@@ -466,7 +466,7 @@ paths:
     x-swagger-router-controller: language
     get:
       summary: Get user language
-      operationId: getLanguage
+      operationId: getLanguages
       tags:
         - language
       security:
@@ -662,7 +662,7 @@ definitions:
           - id
         properties:
           id:
-            type: integer
+            type: string
       - $ref: '#/definitions/WorkExperience'
   WorkExperiencesResponse:
     type: array
@@ -685,7 +685,7 @@ definitions:
           - id
         properties:
           id:
-            type: integer
+            type: string
       - $ref: '#/definitions/Language'
   LanguagesResponse:
     type: array
@@ -711,7 +711,7 @@ definitions:
           - id
         properties:
           id:
-            type: integer
+            type: string
       - $ref: '#/definitions/Contact'
   ContactsResponse:
     type: array

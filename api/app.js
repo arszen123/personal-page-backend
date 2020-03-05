@@ -11,6 +11,9 @@ const dbExpress = require('./utils/db');
 const errorHandler = require('./utils/api-error-handler');
 module.exports = app; // for testing
 const ObjectId = require('mongodb').ObjectId;
+const dotenv = require('dotenv');
+const JWTHelper = require('./api/helpers/jwt-helper');
+dotenv.config();
 
 const config = {
   appRoot: __dirname // required config
@@ -21,19 +24,13 @@ const config = {
 
       return;
     },
-    Bearer: async function(req, authOrSecDef, scopesOrApiKey, callback) {
+    Bearer: async function(req, authOrSecDef, token, callback) {
       let userId;
-      try {
-        const token = await req.db.collection('token').findOne({
-          _id: ObjectId(scopesOrApiKey)
-        });
-        if (token === null) {
-          throw new Error('Auth error');
-        }
-        userId = token.user_id;
-      } catch (e) {
-        return callback(e);
+      let data = JWTHelper.verify(token);
+      if (data === null) {
+        return callback(new Error('Auth error'));
       }
+      userId = data.user_id;
       req.auth = {
         user_id: userId
       };

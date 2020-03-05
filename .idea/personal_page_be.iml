@@ -9,5 +9,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="personal_page_fe" />
+    <orderEntry type="module" module-name="frontend" />
   </component>
 </module>

@@ -46,7 +46,7 @@ services:
       - 1025:1025
   db:
     image: mongo
-    restart: always
+#    restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root

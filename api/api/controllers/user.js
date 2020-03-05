@@ -3,6 +3,8 @@
 const APIError = require('../exceptions/api-exception');
 const UserRepository = require('../repository/user');
 const ObjectId = require('mongodb').ObjectId;
+const PasswordHelper = require('../helpers/password-helper');
+const JWTHelper = require('../helpers/jwt-helper');
 
 module.exports = {
   createUser,
@@ -22,6 +24,12 @@ async function createUser(req, res) {
   let userId = null;
 
   try {
+    user.registration_date = new Date();
+    user.password = PasswordHelper.hash(user.password);
+    user.details = {
+      first_name: user.first_name,
+      last_name: user.last_name,
+    };
     let result = await req.db.collection('user').insertOne(user);
     userId = result.insertedId;
   } catch (e) {
@@ -29,7 +37,7 @@ async function createUser(req, res) {
   }
 
   return res.json({
-    token: await UserRepository.getAuthToken(req.db, userId),
+    token: JWTHelper.sign({user_id: userId}),
   });
 }
 
@@ -58,10 +66,10 @@ async function updateUserDetails(req, res) {
     await req.db.collection('user').
         updateOne({_id: ObjectId(req.auth.user_id)}, {
           $set: {
-            first_name: userData.first_name,
-            last_name: userData.last_name,
             email: userData.email,
             details: {
+              first_name: userData.first_name,
+              last_name: userData.last_name,
               birth_date: userData.birth_date,
               birth_place: userData.birth_place,
               living_place: userData.living_place,
@@ -85,17 +93,17 @@ async function getUserDetails(req, res) {
       findOne({_id: ObjectId(req.auth.user_id)}, {
         projection: {
           _id: 0,
-          first_name: 1,
-          last_name: 1,
           email: 1,
+          'details.first_name': 1,
+          'details.last_name': 1,
           'details.birth_date': 1,
           'details.birth_place': 1,
           'details.living_place': 1,
         },
       });
   return res.json({
-    first_name: userData.first_name,
-    last_name: userData.last_name,
+    first_name: userData.details.first_name,
+    last_name: userData.details.last_name,
     email: userData.email,
     birth_date: userData.details.birth_date,
     birth_place: userData.details.birth_place,
