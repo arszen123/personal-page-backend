@@ -1,10 +1,8 @@
 'use strict';
 
 const APIError = require('../exceptions/api-exception');
-const ObjectId = require('mongodb').ObjectId;
-const UserRepository = require('../repository/user');
 const PasswordHelper = require('../helpers/password-helper');
-const JWTHelper = require('../helpers/jwt-helper');
+const AuthService = require('../services/auth-service');
 
 module.exports = {
   login,
@@ -27,10 +25,8 @@ async function login(req, res) {
     return res.throw(new APIError('Wrong username or password', 401,
         'auth_wrong_credentials'));
   }
-  let token = JWTHelper.sign({user_id: user._id});
-  return res.json({
-    token: token,
-  });
+
+  return res.json(AuthService.createTokenResponse(user._id));
 }
 
 /**

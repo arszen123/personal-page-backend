@@ -5,38 +5,24 @@
 * */
 require('./utils/hack');
 const SwaggerExpress = require('swagger-express-mw');
-const app = require('express')();
+const express = require('express');
+const app = express();
 const swaggerUi = require('swagger-ui-express');
 const dbExpress = require('./utils/db');
 const errorHandler = require('./utils/api-error-handler');
 module.exports = app; // for testing
-const ObjectId = require('mongodb').ObjectId;
 const dotenv = require('dotenv');
-const JWTHelper = require('./api/helpers/jwt-helper');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const swaggerSecurityHandlers = require('./utils/auth-gates');
+const InitJwt = require('./utils/init-jwt');
 dotenv.config();
+
+InitJwt.init();
 
 const config = {
   appRoot: __dirname // required config
-  ,swaggerSecurityHandlers: {
-    OAuth2: function (req, authOrSecDef, scopesOrApiKey, callback) {
-      console.log('call');
-      callback(new Error('Api key missing or not registered'));
-
-      return;
-    },
-    Bearer: async function(req, authOrSecDef, token, callback) {
-      let userId;
-      let data = JWTHelper.verify(token);
-      if (data === null) {
-        return callback(new Error('Auth error'));
-      }
-      userId = data.user_id;
-      req.auth = {
-        user_id: userId
-      };
-      callback();
-    },
-  }
+  , swaggerSecurityHandlers: swaggerSecurityHandlers,
 };
 const swaggerUiOptions = {
   explorer: true,
@@ -44,10 +30,10 @@ const swaggerUiOptions = {
     urls: [
       {
         url: 'http://127.0.0.1:8080/swagger',
-        name: 'Spec1'
-      }
+        name: 'Spec1',
+      },
     ],
-  }
+  },
 };
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(null, swaggerUiOptions));
 app.use((req, res, next) => {
@@ -64,8 +50,14 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(cors());
+
 SwaggerExpress.create(config, function(err, swaggerExpress) {
   if (err) { throw err; }
+  app.use(bodyParser({limit: '50mb'}));
+  app.use('/profile_picture', express.static('data/profile_picture'));
   app.use(errorHandler.registerErrorHandler);
   app.use(dbExpress.createDbConnection);
   swaggerExpress.register(app);
@@ -74,3 +66,4 @@ SwaggerExpress.create(config, function(err, swaggerExpress) {
   const port = process.env.PORT || 8080;
   app.listen(port);
 });
+

@@ -1,0 +1,10 @@
+
+<h2>This is the developer page for the PersonalPage project</h2>
+<p>You must create an account to create OAuth applications.</p>
+{{#if isNotLoggedIn}}
+    <p>If you already have an account then you can <a href="/login">login</a> or you can <a href="/register">create a new one</a>.</p>
+{{/if}}
+{{#if isLoggedIn}}
+    <p>Your applications are listed <a href="/app/list">here</a>.</p>
+    <p>You can create a new application <a href="/app/create">here</a>.</p>
+{{/if}}

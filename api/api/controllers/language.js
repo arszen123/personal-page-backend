@@ -1,7 +1,7 @@
 'use strict';
 
 const APIError = require('../exceptions/api-exception');
-const UserRepository = require('../repository/user');
+const WidgetRepository = require('../repository/widget');
 const ObjectId = require('mongodb').ObjectId;
 
 module.exports = {
@@ -15,8 +15,11 @@ async function createLanguage(req, res) {
   let userId = req.auth.user_id;
   let language = req.swagger.params.language.value || {};
   language.userId = ObjectId(userId);
-  req.db.collection('language').insertOne(language);
-  return res.json({success: true});
+  let result = await req.db.collection('language').insertOne(language);
+  return res.json({
+    success: true,
+    id: result.insertedId,
+  });
 }
 
 async function updateLanguage(req, res) {
@@ -31,10 +34,11 @@ async function updateLanguage(req, res) {
 
 
 async function deleteLanguage(req, res) {
-  let userId = req.auth.user_id;
-  let languageId = req.swagger.params.id.value;
+  const userId = req.auth.user_id;
+  const languageId = req.swagger.params.id.value;
   await req.db.collection('language').
       deleteOne({_id: ObjectId(languageId), userId: ObjectId(userId)});
+  await WidgetRepository.deleteWidget(req.db, userId, languageId, 'language');
   return res.json({success:true});
 }
 

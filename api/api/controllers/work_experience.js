@@ -1,7 +1,7 @@
 'use strict';
 
 const APIError = require('../exceptions/api-exception');
-const UserRepository = require('../repository/user');
+const WidgetRepository = require('../repository/widget');
 const ObjectId = require('mongodb').ObjectId;
 
 module.exports = {
@@ -19,8 +19,11 @@ async function createWorkExperience(req, res) {
   if (experience.to) {
     experience.to = new Date(experience.to);
   }
-  req.db.collection('experience').insertOne(experience);
-  return res.json({success: true});
+  let result = await req.db.collection('experience').insertOne(experience);
+  return res.json({
+    success: true,
+    id: result.insertedId
+  });
 }
 
 async function updateWorkExperience(req, res) {
@@ -38,6 +41,7 @@ async function deleteWorkExperience(req, res) {
   let experienceId = req.swagger.params.id.value;
   await req.db.collection('experience').
       deleteOne({_id: ObjectId(experienceId), userId: ObjectId(userId)});
+  await WidgetRepository.deleteWidget(req.db, userId, experienceId, 'experience');
   return res.json({success:true});
 }
 

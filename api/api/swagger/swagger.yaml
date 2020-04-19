@@ -3,7 +3,7 @@ info:
   version: "0.0.1"
   title: Personal Page APP
 # during dev, should point to your local machine
-host: localhost:8080
+host: 127.0.0.1:8080
 ## basePath prefixes all resource paths
 basePath: /
 ##
@@ -21,6 +21,8 @@ produces:
 #  - OAuth2: []
 #  - Bearer: []
 securityDefinitions:
+  Page:
+    type: basic
   Bearer:
     type: apiKey
     name: Authorization
@@ -28,7 +30,7 @@ securityDefinitions:
   OAuth2:
     type: oauth2
     flow: accessCode
-    authorizationUrl: https://localhost:8080/oauth/authorize
+    authorizationUrl: http://127.0.0.1/oauth/authorize
     tokenUrl: https://localhost:8080/oauth/token
     scopes:
       read: Grants read access
@@ -49,6 +51,8 @@ tags:
     description: User language operations
   - name: contact
     description: User contact operations
+  - name: page
+    description: User page operations
 
 paths:
   /authentication/login:
@@ -69,11 +73,7 @@ paths:
         "200":
           description: "Default response"
           schema:
-            type: object
-            properties:
-              token:
-                type: string
-                description: User bearer token
+            $ref: '#/definitions/TokenResponse'
         401:
           description: "Wrong credentials"
           schema:
@@ -135,11 +135,7 @@ paths:
         "200":
           description: "The user created successfully"
           schema:
-            type: object
-            properties:
-              token:
-                type: string
-                description: User token
+            $ref: '#/definitions/TokenResponse'
         409:
           description: "A user with the email is already exists"
           schema:
@@ -194,6 +190,7 @@ paths:
         - user
       security:
         - Bearer: []
+        - OAuth2: ['read']
       responses:
         "200":
           description: "Default response"
@@ -219,6 +216,10 @@ paths:
           schema:
             $ref: '#/definitions/Education'
       responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/SuccessEntityInsert'
         400:
           description: General error
           schema:
@@ -273,6 +274,7 @@ paths:
         - education
       security:
         - Bearer: []
+        - OAuth2: ['read']
       responses:
         200:
           description: The list of user educations
@@ -309,6 +311,7 @@ paths:
         - skill
       security:
         - Bearer: []
+        - OAuth2: ['read']
       responses:
         200:
           description: The list of user skills
@@ -338,6 +341,10 @@ paths:
           schema:
             $ref: '#/definitions/WorkExperience'
       responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/SuccessEntityInsert'
         400:
           description: General error
           schema:
@@ -392,6 +399,7 @@ paths:
         - work-experience
       security:
         - Bearer: []
+        - OAuth2: ['read']
       responses:
         200:
           description: The list of user experiences
@@ -417,6 +425,10 @@ paths:
           schema:
             $ref: '#/definitions/Language'
       responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/SuccessEntityInsert'
         400:
           description: General error
           schema:
@@ -471,6 +483,7 @@ paths:
         - language
       security:
         - Bearer: []
+        - OAuth2: ['read']
       responses:
         200:
           description: The list of user languages
@@ -496,6 +509,10 @@ paths:
           schema:
             $ref: '#/definitions/Contact'
       responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/SuccessEntityInsert'
         400:
           description: General error
           schema:
@@ -550,6 +567,7 @@ paths:
         - contact
       security:
         - Bearer: []
+        - OAuth2: ['read']
       responses:
         200:
           description: The list of user contacts
@@ -559,7 +577,270 @@ paths:
           description: General error
           schema:
             $ref: '#/definitions/ErrorResponse'
-
+  /user/page:
+    x-swagger-router-controller: page
+    get:
+      summary: Get user page settings
+      operationId: getPage
+      tags:
+        - page
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: User page settings
+          schema:
+            type: object
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    post:
+      summary: Save user page settings
+      operationId: updatePage
+      tags:
+        - page
+      security:
+        - Bearer: []
+      parameters:
+        - name: page
+          in: body
+          required: true
+          schema:
+            type: object
+      responses:
+        200:
+          description: The update was success or not
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /page/{id}:
+    x-swagger-router-controller: page
+    get:
+      summary: Get user page to view
+      operationId: getPageForPublic
+      tags:
+        - page
+      security:
+        - Page: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: User page settings
+          schema:
+            type: object
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /page/{id}/exists:
+    x-swagger-router-controller: page
+    get:
+      summary: Does page available
+      operationId: isExists
+      tags:
+        - page
+      security:
+        - Bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: User page settings
+          schema:
+            type: object
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /oauth/check-validity:
+    x-swagger-router-controller: oauth
+    post:
+      summary: Does the oauth request valid
+      operationId: checkAuthorizedValidity
+      tags:
+        - oauth
+      security:
+        - Bearer: []
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            required:
+              - response_type
+              - client_id
+              - redirect_uri
+            properties:
+              response_type:
+                type: string
+              clent_id:
+                type: string
+              redirect_uri:
+                type: string
+              scope:
+                type: string
+      responses:
+        200:
+          description: User page settings
+          schema:
+            $ref: '#/definitions/OauthCheckResponse'
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /oauth/check-validity-unauthorized:
+    x-swagger-router-controller: oauth
+    post:
+      summary: Does the oauth request valid
+      operationId: checkUnauthorizedValidity
+      tags:
+        - oauth
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            required:
+              - response_type
+              - client_id
+              - redirect_uri
+            properties:
+              response_type:
+                type: string
+              clent_id:
+                type: string
+              redirect_uri:
+                type: string
+              scope:
+                type: string
+      responses:
+        200:
+          description: User page settings
+          schema:
+            $ref: '#/definitions/OauthCheckResponse'
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /oauth/authorize:
+    x-swagger-router-controller: oauth
+    post:
+      summary: Give permission to thirthy party client.
+      operationId: authorize
+      tags:
+        - oauth
+      security:
+          - Bearer: []
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            required:
+              - response_type
+              - client_id
+              - redirect_uri
+            properties:
+              response_type:
+                type: string
+              clent_id:
+                type: string
+              redirect_uri:
+                type: string
+              scope:
+                type: string
+      responses:
+        200:
+          description: User page settings
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+                description: User token
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /oauth/logout:
+    x-swagger-router-controller: oauth
+    post:
+      summary: Invalidates user OAuth token
+      operationId: logout
+      tags:
+        - oauth
+      security:
+        - OAuth2: []
+      responses:
+        200:
+          description: User logged out successfully
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /oauth/apps:
+    x-swagger-router-controller: oauth
+    get:
+      summary: Returns the clients who has the user grantet permission
+      operationId: listApps
+      tags:
+        - oauth
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: List of apps
+          schema:
+            $ref: '#/definitions/OauthClientAppResponse'
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /oauth/app/{id}:
+    x-swagger-router-controller: oauth
+    delete:
+      summary: Returns the clients who has the user grantet permission
+      operationId: deleteApp
+      tags:
+        - oauth
+      security:
+        - Bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: The operations was success or not
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
   /swagger:
     x-swagger-pipe: swagger_raw
 # complex objects have schema definitions
@@ -722,12 +1003,17 @@ definitions:
       - $ref: '#/definitions/User'
       - type: object
         properties:
+          profile_picture:
+            type: string
+            description: File in base64 encoded string in POST request or empty if, no modification is requred. To delete the actual image pass 'delete'. In GET request the image path.
           birth_place:
             type: string
           birth_date:
             type: string
             format: date
           living_place:
+            type: string
+          bio:
             type: string
   ErrorResponse:
     required:
@@ -749,3 +1035,66 @@ definitions:
           - type: string
     example:
       skill: ["Skill1","Skill2"]
+  SuccessEntityInsert:
+    required:
+      - success
+      - id
+    properties:
+      success:
+        type: boolean
+      id:
+        type: string
+  OauthCheckResponse:
+    properties:
+      success:
+        type: boolean
+      token:
+        type: string
+      app:
+        allOf:
+          - type: object
+          - $ref: '#/definitions/OauthClientApp'
+
+  OauthClientAppResponse:
+    properties:
+      apps:
+        type: array
+        items:
+          allOf:
+            - $ref: '#/definitions/OauthClientApp'
+            - type: object
+              properties:
+                id:
+                  type: string
+                authorized_at:
+                  type: string
+                  description: Time when the access granted
+                  example: "2020-01-01 19:20:20"
+
+  OauthClientApp:
+    properties:
+      name:
+        type: string
+        description: Application name
+      scopes:
+        type: array
+        description: Application requested scopes
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+  TokenResponse:
+    required:
+      - token
+      - expires_at
+    properties:
+      token:
+        type: string
+        description: User bearer token
+      expires_at:
+        type: string
+        description: Date with timezone
+        example: "2020-04-08T17:48:44.325Z"

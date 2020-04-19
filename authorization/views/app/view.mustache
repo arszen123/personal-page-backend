@@ -1,0 +1,13 @@
+<p>ClientId: {{ app._id }}</p>
+<p>App name: {{ app.app_name }}</p>
+<p>Description: {{ app.description }}</p>
+<p>App url: {{ app.app_url }}</p>
+<p>Callback url: {{ app.callback_url }}</p>
+<a href="/app/edit/{{ app._id }}" class="mdc-button mdc-button--raised">
+    <div class="mdc-button__ripple"></div>
+    <span class="mdc-button__label">Edit</span>
+</a>
+<a href="/app/list" class="mdc-button mdc-button--raised">
+    <div class="mdc-button__ripple"></div>
+    <span class="mdc-button__label">Back</span>
+</a>

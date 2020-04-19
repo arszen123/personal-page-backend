@@ -1,7 +1,7 @@
 'use strict';
 
 const APIError = require('../exceptions/api-exception');
-const UserRepository = require('../repository/user');
+const WidgetRepository = require('../repository/widget');
 const ObjectId = require('mongodb').ObjectId;
 
 module.exports = {
@@ -17,8 +17,11 @@ async function createEducation(req, res) {
   education.userId = ObjectId(userId);
   education.from = new Date(education.from);
   education.to = new Date(education.to);
-  req.db.collection('education').insertOne(education);
-  return res.json({success: true});
+  let result = await req.db.collection('education').insertOne(education);
+  return res.json({
+    success: true,
+    id: result.insertedId
+  });
 }
 
 async function updateEducation(req, res) {
@@ -35,10 +38,11 @@ async function updateEducation(req, res) {
 
 
 async function deleteEducation(req, res) {
-  let userId = req.auth.user_id;
-  let educationId = req.swagger.params.id.value;
+  const userId = req.auth.user_id;
+  const educationId = req.swagger.params.id.value;
   await req.db.collection('education').
       deleteOne({_id: ObjectId(educationId), userId: ObjectId(userId)});
+  await WidgetRepository.deleteWidget(req.db, userId, educationId, 'education');
   return res.json({success:true});
 }
 
@@ -55,8 +59,6 @@ async function getEducations(req, res) {
       delete result[resultKey]._id;
     }
   } catch (e) {
-    console.log(e);
   }
-  console.log(result);
   return res.json(result);
 }

@@ -1,0 +1,56 @@
+{{ errorMessage }}
+<form method="post">
+    <div class="mdc-text-field">
+        <div class="mdc-text-field__ripple"></div>
+        <input id="app_name" name="app_name" class="mdc-text-field__input" type="text" value="{{ app.app_name }}">
+        <span class="mdc-floating-label">App name</span>
+        <div class="mdc-line-ripple"></div>
+    </div>
+    <div class="mdc-text-field mdc-text-field--textarea mdc-text-field--no-label">
+        <textarea id="description" name="description" class="mdc-text-field__input" aria-labelledby="description-label" rows="8" cols="40">{{ app.description }}</textarea>
+        <div class="mdc-notched-outline">
+            <div class="mdc-notched-outline__leading"></div>
+            <div class="mdc-notched-outline__notch">
+                <label class="mdc-floating-label" id="description-label">Description</label>
+            </div>
+            <div class="mdc-notched-outline__trailing"></div>
+        </div>
+    </div>
+    <div class="mdc-text-field">
+        <div class="mdc-text-field__ripple"></div>
+        <input id="app_url" name="app_url" class="mdc-text-field__input" type="text" value="{{ app.app_url }}">
+        <span class="mdc-floating-label">App url</span>
+        <div class="mdc-line-ripple"></div>
+    </div>
+    <div class="mdc-text-field">
+        <div class="mdc-text-field__ripple"></div>
+        <input id="callback_url" name="callback_url" class="mdc-text-field__input" type="text" value="{{ app.callback_url }}">
+        <span class="mdc-floating-label">Callback url</span>
+        <div class="mdc-line-ripple"></div>
+    </div>
+    <button class="mdc-button mdc-button--raised">
+        <div class="mdc-button__ripple"></div>
+        <span class="mdc-button__label">
+            {{#if isEdit }}
+                Save
+            {{else}}
+                Create
+            {{/if}}
+        </span>
+    </button>
+    {{#if isEdit }}
+        <a href="/app/view/{{ app._id }}" class="mdc-button mdc-button--raised">
+            <div class="mdc-button__ripple"></div>
+            <span class="mdc-button__label">
+                Cancel
+            </span>
+        </a>
+    {{else}}
+        <a href="/app/list" class="mdc-button mdc-button--raised">
+            <div class="mdc-button__ripple"></div>
+            <span class="mdc-button__label">
+                Cancel
+            </span>
+        </a>
+    {{/if}}
+</form>

@@ -1,20 +1,46 @@
 'use strict';
 const jwt = require('jsonwebtoken');
+/**
+ * It will hold the registered instances
+ * @type {JWTHelper}
+ */
+const jwtHelpers = {};
 
-module.exports = class JWTHelper {
-  static sign(data, options) {
-    let token = jwt.sign(data, process.env.JWT_SECRET, {
-      expiresIn: Number.parseInt(process.env.JWT_EXPIRES_IN),
-      ...(options || {})
-    });
-    return token;
+class JWTHelper {
+
+  constructor(opt) {
+    this.options = opt;
   }
 
-  static verify(token) {
+  static register(name, opt) {
+    jwtHelpers[name] = new JWTHelper(opt);
+  }
+
+  static get(name) {
+    name = name || 'default';
+    return jwtHelpers[name];
+  }
+
+  sign(data, options) {
+    let jwtOptions = {
+      ...(options || {}),
+    };
+    if (this.options.expiresIn) {
+      jwtOptions = {
+        expiresIn: Number.parseInt(this.options.expiresIn),
+        ...(options || {}),
+      };
+    }
+    return jwt.sign(data, this.options.secret, jwtOptions);
+  }
+
+  verify(token) {
     try {
-      return jwt.verify(token, process.env.JWT_SECRET);
+      return jwt.verify(token, this.options.secret);
     } catch (e) {
     }
     return null;
   }
 };
+
+module.exports = JWTHelper;

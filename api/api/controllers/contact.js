@@ -1,7 +1,7 @@
 'use strict';
 
 const APIError = require('../exceptions/api-exception');
-const UserRepository = require('../repository/user');
+const WidgetRepository = require('../repository/widget');
 const ObjectId = require('mongodb').ObjectId;
 
 module.exports = {
@@ -18,8 +18,11 @@ async function createContact(req, res) {
   if (contact.type !== 'other') {
     delete contact.other_type;
   }
-  req.db.collection('contact').insertOne(contact);
-  return res.json({success: true});
+  let result = await req.db.collection('contact').insertOne(contact);
+  return res.json({
+    success: true,
+    id: result.insertedId
+  });
 }
 
 async function updateContact(req, res) {
@@ -38,6 +41,7 @@ async function deleteContact(req, res) {
   let contactId = req.swagger.params.id.value;
   await req.db.collection('contact').
       deleteOne({_id: ObjectId(contactId), userId: ObjectId(userId)});
+  await WidgetRepository.deleteWidget(req.db, userId, contactId, 'education');
   return res.json({success:true});
 }
 

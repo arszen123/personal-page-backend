@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        /*@media (min-width: 750px) {*/
+        /*    #app-container .app-item {*/
+        /*        width: 30%;*/
+        /*        margin-left: 2%;*/
+        /*    }*/
+        /*}*/
+    </style>
+    <style>
+        html, body {
+            margin: 0;
+        }
+        #content {
+            padding-top: 25px;
+        }
+        #app-container .app-item {
+            width: 46%;
+            margin-left: 2%;
+            display: inline-table;
+            height: 25px;
+            text-align: center;
+            border: solid 2px black;
+            border-radius: 25px;
+            text-decoration: none;
+        }
+        @media (min-width: 750px) {
+            #app-container .app-item {
+                width: 30%;
+                margin-left: 2%;
+            }
+        }
+
+        @media (min-width: 955px) {
+            #content {
+                width: 50%;
+                position: absolute;
+                left: 25%;
+            }
+        }
+
+        form .mdc-text-field {
+            width: 100%;
+            margin-bottom: 25px;
+        }
+        .mdc-button {
+            text-decoration: none;
+        }
+    </style>
+    <link href="https://unpkg.com/material-components-web@v4.0.0/dist/material-components-web.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script src="https://unpkg.com/material-components-web@v4.0.0/dist/material-components-web.min.js"></script>
+</head>
+<body>
+<!--<div class="mdc-drawer-app-content">-->
+<aside class="mdc-drawer mdc-drawer--modal">
+    <div class="mdc-drawer__content">
+        <nav id="nav-items" class="mdc-list">
+            {{#if isLoggedIn}}
+                <a class="mdc-list-item" href="/" aria-selected="true">
+                    <i class="material-icons mdc-list-item__graphic" aria-hidden="true">home</i>
+                    <span class="mdc-list-item__text">Home</span>
+                </a>
+                <a class="mdc-list-item" href="/app/list" aria-selected="true">
+                    <i class="material-icons mdc-list-item__graphic" aria-hidden="true">list</i>
+                    <span class="mdc-list-item__text">My Apps</span>
+                </a>
+                <a class="mdc-list-item" href="/app/create">
+                    <i class="material-icons mdc-list-item__graphic" aria-hidden="true">create</i>
+                    <span class="mdc-list-item__text">Create App</span>
+                </a>
+                <a class="mdc-list-item" href="/logout">
+                    <i class="material-icons mdc-list-item__graphic" aria-hidden="true">logout</i>
+                    <span class="mdc-list-item__text">Logout</span>
+                </a>
+            {{/if}}
+            {{#if isNotLoggedIn}}
+                <a class="mdc-list-item" href="/" aria-selected="true">
+                    <i class="material-icons mdc-list-item__graphic" aria-hidden="true">home</i>
+                    <span class="mdc-list-item__text">Home</span>
+                </a>
+                <a class="mdc-list-item" href="/login">
+                    <i class="material-icons mdc-list-item__graphic" aria-hidden="true">arrow_right_alt</i>
+                    <span class="mdc-list-item__text">Login</span>
+                </a>
+                <a class="mdc-list-item" href="/register">
+                    <i class="material-icons mdc-list-item__graphic" aria-hidden="true">create</i>
+                    <span class="mdc-list-item__text">Register</span>
+                </a>
+            {{/if}}
+        </nav>
+    </div>
+</aside>
+<!-- The mdc-drawer-scrim next sibling element is required, to protect the app’s UI from interactions while the modal drawer is open. -->
+<div class="mdc-drawer-scrim"></div>
+<header class=" mdc-top-app-bar mdc-top-app-bar--fixed" id="app-bar">
+    <div class="mdc-top-app-bar__row">
+        <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+            <button id="menu-toggle-button"
+                    class="mdc-icon-button material-icons mdc-top-app-bar__navigation-icon--unbounded">menu
+            </button>
+            <span class="mdc-top-app-bar__title">Personal Page Developer</span></section>
+    </div>
+</header>
+<main class="main-content" id="main-content">
+    <div class="mdc-top-app-bar--fixed-adjust">
+        <div id="content">
+            {{{ body }}}
+        </div>
+    </div>
+</main>
+<script>
+
+    function setActivatedMenuItemClass() {
+        const navItems = document.getElementById('nav-items');
+        const activatedClass = 'mdc-list-item--activated';
+        let added = false;
+        for (const childNodesKey in navItems.childNodes) {
+            const navItem = navItems.childNodes[childNodesKey];
+            if (typeof navItem.href === 'undefined' &&
+                    (navItem.href === window.location.pathname || navItem.href === window.location.href)) {
+                added = true;
+                navItem.classList.add(activatedClass);
+                break;
+            }
+        }
+        if (!added) {
+            for (const childNodesKey in navItems.childNodes) {
+                const navItem = navItems.childNodes[childNodesKey];
+                if (typeof navItem.href === 'undefined') {
+                    continue;
+                }
+                navItem.classList.add(activatedClass);
+                break;
+            }
+        }
+    }
+
+    setActivatedMenuItemClass();
+</script>
+<script>
+    const MDCTopAppBar = mdc.topAppBar.MDCTopAppBar;
+    const MDCDrawer = mdc.drawer.MDCDrawer;
+    const MDCRipple = mdc.ripple.MDCRipple;
+    const MDCTextField = mdc.textField.MDCTextField;
+
+    const drawer = MDCDrawer.attachTo(document.querySelector('.mdc-drawer'));
+    const topAppBar = MDCTopAppBar.attachTo(document.getElementById('app-bar'));
+    topAppBar.setScrollTarget(document.getElementById('main-content'));
+    topAppBar.listen('MDCTopAppBar:nav', () => {
+        drawer.open = !drawer.open;
+    });
+
+    const button = document.getElementById('menu-toggle-button');
+    button.addEventListener('click', () => {
+        drawer.open = !drawer.open;
+    });
+    MDCRipple.attachTo(button);
+    button.addEventListener('click', function() {
+        drawer.open = true;
+    });
+
+    const textFields = document.getElementsByClassName('mdc-text-field');
+    for (let textFieldsKey in textFields) {
+        new MDCTextField(textFields[textFieldsKey]);
+    }
+</script>
+</body>
+</html>

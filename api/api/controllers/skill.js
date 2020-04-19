@@ -1,7 +1,6 @@
 'use strict';
 
 const APIError = require('../exceptions/api-exception');
-const UserRepository = require('../repository/user');
 const ObjectId = require('mongodb').ObjectId;
 
 module.exports = {
@@ -16,7 +15,6 @@ async function createSkills(req, res) {
     userId: ObjectId(userId),
     skills: skillsParam,
   };
-  console.log(skills);
   try {
     await req.db.collection('skill').update({userId: ObjectId(userId)}, skills, {upsert: true});
   } catch (e) {
