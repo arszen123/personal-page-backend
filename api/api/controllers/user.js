@@ -12,6 +12,7 @@ module.exports = {
   getUser,
   updateUserDetails,
   getUserDetails,
+  editProfile,
 };
 
 /**
@@ -109,7 +110,8 @@ async function updateUserDetails(req, res) {
             },
         );
       } else {
-        const imgData = userData.profile_picture.replace('data:image/png;base64,', '');
+        const imgData = userData.profile_picture.replace(
+            'data:image/png;base64,', '');
         await fs.writeFile(
             `${basePath}/${userId}.png`,
             imgData,
@@ -158,4 +160,33 @@ async function getUserDetails(req, res) {
     }
   } catch (e) {}
   return res.json(result);
+}
+
+async function editProfile(req, res) {
+  const userId = req.auth.user_id;
+  const data = req.swagger.params.user.value || {};
+  const updatePassword = typeof data.newPassword !== 'undefined';
+  const password = data.password;
+  const user = await req.db.collection('user').findOne({_id: ObjectId(userId)});
+  if (user.password !== PasswordHelper.hash(password)) {
+    return res.throw(new APIError('Wrong password!', 400, 'wrong_password'));
+  }
+  const updateData = {
+    email: data.email,
+  };
+  if (updatePassword) {
+    updateData.password = PasswordHelper.hash(data.newPassword);
+  }
+  const existsEmail = await req.db.collection('user').
+      findOne({email: data.email}, {projection: {_id: 1}});
+  if (existsEmail && existsEmail._id.toString() !== user._id.toString()) {
+    return res.throw(new APIError('Email is already taken!', 400, 'email_taken'))
+  }
+  try {
+    await req.db.collection('user').
+        updateOne({_id: ObjectId(userId)}, {$set: updateData});
+  } catch (e) {
+    return res.throw(new APIError());
+  }
+  res.json({success: true});
 }

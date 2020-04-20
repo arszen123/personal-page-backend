@@ -200,6 +200,46 @@ paths:
           description: "General error"
           schema:
             $ref: '#/definitions/ErrorResponse'
+  /user/profile:
+    x-swagger-router-controller: user
+    put:
+      summary: Edit user profile
+      operationId: editProfile
+      tags:
+        - user
+      security:
+        - Bearer: []
+      parameters:
+        - name: user
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+                format: email
+              newPassword:
+                type: string
+                format: password
+              password:
+                type: string
+                format: password
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
   /user/education:
     x-swagger-router-controller: education
     post:
