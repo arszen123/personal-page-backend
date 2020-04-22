@@ -2,6 +2,7 @@
 const express = require('express');
 const PasswordHelper = require('../helpers/password-helper');
 const router = express.Router();
+const EmailService = require('../services/email-service');
 let getRenderBaseOptions = null;
 
 router.get('/login', function(req, res) {
@@ -40,14 +41,18 @@ router.post('/register', async function(req, res) {
         {errorMessage: 'User with this email address already exists!'});
   }
   try {
-    const data = {
+    const baseUser = {
       email: body.email,
       first_name: body.first_name,
       last_name: body.last_name,
+    };
+    const data = {
+      ...baseUser,
       password: PasswordHelper.hash(body.password),
     };
     let k = await req.db.collection('user').insertOne(data);
     req.session.user = getUserForSession(k.insertedId, data);
+    await EmailService.sendRegistrationMail(baseUser);
     res.redirect('/');
   } catch (e) {
     res.render('login', getRenderBaseOptions(req));

@@ -19,8 +19,6 @@ module.exports = {
 function checkValidity(data, valueFn, errorFn) {
   const postData = querystring.stringify(data);
   const options = {
-    hostname: 'auth',
-    port: 8082,
     path: '/api/validate-client',
     method: 'POST',
     headers: {
@@ -34,22 +32,14 @@ function checkValidity(data, valueFn, errorFn) {
 function getAppsName(appIds, valueFn, errorFn) {
   const data = querystring.stringify({client_ids: appIds});
   const options = {
-    hostname: 'auth',
-    port: 8082,
     path: '/api/clients?' + data, // ?? ?? ??
     method: 'GET',
-    // headers: {
-    //   'Content-Type': 'application/x-www-form-urlencoded',
-    //   'Content-Length': Buffer.byteLength(postData),
-    // },
   };
   doRequest({options}, valueFn, errorFn);
 }
 
 function revokeClientPermission({clientId, userId}, valueFn, errorFn) {
   const options = {
-    hostname: 'auth',
-    port: 8082,
     path: `/api/client/${clientId}/user/${userId}`,
     method: 'DELETE',
   };
@@ -57,7 +47,12 @@ function revokeClientPermission({clientId, userId}, valueFn, errorFn) {
 }
 
 function doRequest({options, postData}, valueFn, errorFn) {
-  const request = http.request(options, (resIn) => {
+  const requestOptions = {
+    hostname: process.env.AUTH_API_HOSTNAME,
+    port: process.env.AUTH_API_PORT,
+    ...options
+  };
+  const request = http.request(requestOptions, (resIn) => {
     let body = '';
     resIn.on('data', (chunk) => {
       body += chunk;

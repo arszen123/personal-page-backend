@@ -29,7 +29,7 @@ const swaggerUiOptions = {
   swaggerOptions: {
     urls: [
       {
-        url: 'http://127.0.0.1:8080/swagger',
+        url: process.env.API_URL + '/swagger',
         name: 'Spec1',
       },
     ],

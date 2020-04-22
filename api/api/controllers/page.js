@@ -101,7 +101,7 @@ async function getPageForPublic(req, res) {
   const basePath = './data/profile_picture';
   try {
     if (fs.existsSync(`${basePath}/${userId}.png`)) {
-      user.profile_picture = `http://127.0.0.1:8080/profile_picture/${userId}.png`;
+      user.profile_picture = process.env.API_URL + `/profile_picture/${userId}.png`;
     }
   } catch (e) {}
   return res.json({

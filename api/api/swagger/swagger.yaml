@@ -3,7 +3,7 @@ info:
   version: "0.0.1"
   title: Personal Page APP
 # during dev, should point to your local machine
-host: 127.0.0.1:8080
+host: pp.devel:8080
 ## basePath prefixes all resource paths
 basePath: /
 ##
@@ -30,8 +30,8 @@ securityDefinitions:
   OAuth2:
     type: oauth2
     flow: accessCode
-    authorizationUrl: http://127.0.0.1/oauth/authorize
-    tokenUrl: https://localhost:8080/oauth/token
+    authorizationUrl: http://pp.devel/oauth/authorize
+    tokenUrl: https://pp.devel:8080/oauth/authorize
     scopes:
       read: Grants read access
       write: Grants write access
@@ -108,11 +108,7 @@ paths:
         "200":
           description: "Default response"
           schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-                description: Wheter the logout was succees or not.
+            $ref: '#/definitions/SimpleSuccessResponse'
         default:
           description: "General error"
           schema:
@@ -156,6 +152,39 @@ paths:
           description: "The logged in user data"
           schema:
             $ref: '#/definitions/User'
+  /user/delete/{code}:
+    x-swagger-router-controller: user
+    delete:
+      summary: Delete user
+      operationId: deleteUser
+      tags:
+        - user
+      security:
+        - Bearer: []
+      parameters:
+        - name: code
+          in: path
+          required: true
+          type: string
+      responses:
+        "200":
+          description: "Success"
+          schema:
+            $ref: '#/definitions/SimpleSuccessResponse'
+  /user/delete:
+    x-swagger-router-controller: user
+    post:
+      summary: Sends an email to the user with a removal URL.
+      operationId: startDeleteUser
+      tags:
+        - user
+      security:
+        - Bearer: []
+      responses:
+        "200":
+          description: "The email was sent successfully"
+          schema:
+            $ref: '#/definitions/SimpleSuccessResponse'
   /user/details:
     x-swagger-router-controller: user
     put:
@@ -1138,3 +1167,9 @@ definitions:
         type: string
         description: Date with timezone
         example: "2020-04-08T17:48:44.325Z"
+  SimpleSuccessResponse:
+    required:
+      - success
+    properties:
+      success:
+        type: boolean

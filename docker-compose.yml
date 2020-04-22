@@ -21,6 +21,8 @@ services:
       DB_NAME: dbname
       DB_AUTH_USERNAME: root
       DB_AUTH_PASSWORD: root
+      AUTH_API_HOSTNAME: auth
+      AUTH_API_PORT: 8082
     links:
       - db
   auth:
@@ -46,11 +48,11 @@ services:
       DB_AUTH_PASSWORD: root
     links:
       - db
-#  mailhog:
-#    image: mailhog/mailhog
-#    ports:
-#      - 8025:8025
-#      - 1025:1025
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - 8025:8025
+      - 1025:1025
   db:
     image: mongo
 #    restart: always

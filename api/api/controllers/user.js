@@ -5,6 +5,7 @@ const ObjectId = require('mongodb').ObjectId;
 const PasswordHelper = require('../helpers/password-helper');
 const AuthService = require('../services/auth-service');
 const ObjectParser = require('../utils/object-parser');
+const EmailService = require('../services/email-service');
 const fs = require('fs');
 
 module.exports = {
@@ -13,6 +14,8 @@ module.exports = {
   updateUserDetails,
   getUserDetails,
   editProfile,
+  startDeleteUser,
+  deleteUser,
 };
 
 /**
@@ -43,7 +46,12 @@ async function createUser(req, res) {
     });
     let result = await req.db.collection('user').insertOne(user);
     userId = result.insertedId;
+    await EmailService.sendRegistrationMail({
+      email: user.email,
+      ...(user.details),
+    });
   } catch (e) {
+    console.log(e);
     return res.throw(new APIError('User already exists'));
   }
 
@@ -156,7 +164,7 @@ async function getUserDetails(req, res) {
   const basePath = './data/profile_picture';
   try {
     if (fs.existsSync(`${basePath}/${userId}.png`)) {
-      result.profile_picture = `http://127.0.0.1:8080/profile_picture/${userId}.png`;
+      result.profile_picture = process.env.API_URL + `/profile_picture/${userId}.png`;
     }
   } catch (e) {}
   return res.json(result);
@@ -180,13 +188,102 @@ async function editProfile(req, res) {
   const existsEmail = await req.db.collection('user').
       findOne({email: data.email}, {projection: {_id: 1}});
   if (existsEmail && existsEmail._id.toString() !== user._id.toString()) {
-    return res.throw(new APIError('Email is already taken!', 400, 'email_taken'))
+    return res.throw(
+        new APIError('Email is already taken!', 400, 'email_taken'));
   }
   try {
     await req.db.collection('user').
         updateOne({_id: ObjectId(userId)}, {$set: updateData});
+    await EmailService.sendEmailChangeMail({
+      email: data.email,
+      first_name: user.details.first_name,
+      last_name: user.details.last_name,
+    });
   } catch (e) {
     return res.throw(new APIError());
   }
   res.json({success: true});
+}
+
+async function startDeleteUser(req, res) {
+  const userId = req.auth.user_id;
+  const inserted = await req.db.collection('delete_tokens').insertOne({
+    user_id: userId,
+    expires_at: (new Date()).getTime() + (24 * 60 * 60 * 1000),
+  });
+  const user = await req.db.collection('user').findOne({
+    _id: ObjectId(userId),
+  });
+
+  const sent = await EmailService.sendDeleteRequestMail({
+    email: user.email,
+    first_name: user.details.first_name,
+    last_name: user.details.last_name,
+  }, process.env.FRONTEND_APP_DELETE_ACCOUNT_URL + '/' + inserted.insertedId.toString());
+  if (sent === null) {
+    res.throw(new APIError());
+  }
+  return res.json({success: true});
+}
+
+async function deleteUser(req, res) {
+  const code = req.swagger.params.code.value;
+  const notExistsUrlError = new APIError('Not exists url!', 400, 'expired_delete_url');
+  let codeData = null;
+  try {
+    codeData = await req.db.collection('delete_tokens').findOneAndDelete({
+      _id: ObjectId(code),
+    });
+  } catch (e) {
+    return res.throw(notExistsUrlError);
+  }
+  if (codeData === null || codeData.value === null) {
+    return res.throw(notExistsUrlError);
+  }
+  const expiresAt = codeData.value.expires_at;
+  if ((new Date()).getTime() > expiresAt) {
+    return res.throw(new APIError('Expired url!', 400, 'expired_delete_url'))
+  }
+  const userId = req.auth.user_id;
+  const userObjId = ObjectId(userId);
+  const user = await req.db.collection('user').findOne({
+    _id: userObjId,
+  });
+
+  const deleteArr = [
+    req.db.collection('user').deleteOne({
+      _id: userObjId,
+    }),
+    req.db.collection('experience').deleteOne({
+      userId: userObjId,
+    }),
+    req.db.collection('skill').deleteOne({
+      userId: userObjId,
+    }),
+    req.db.collection('page').deleteOne({
+      userId: userObjId,
+    }),
+    req.db.collection('language').deleteOne({
+      userId: userObjId,
+    }),
+    req.db.collection('education').deleteOne({
+      userId: userObjId,
+    }),
+    req.db.collection('contact').deleteOne({
+      userId: userObjId,
+    }),
+  ];
+  for (let deleteArrElement of deleteArr) {
+    try {
+      await deleteArrElement;
+    } catch (e) {
+      console.log(e);
+    }
+  }
+  await EmailService.sendDeletedMail({
+    email: user.email,
+    first_name: user.details.first_name,
+    last_name: user.details.last_name,
+  });
+  return res.json({success: true});
 }
