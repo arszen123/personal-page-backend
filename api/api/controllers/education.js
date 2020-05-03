@@ -12,12 +12,10 @@ module.exports = {
 };
 
 async function createEducation(req, res) {
-  let userId = req.auth.user_id;
-  let education = req.swagger.params.education.value || {};
+  const userId = req.auth.user_id;
+  const education = _createEducationForDb(req.swagger.params.education.value || {});
   education.userId = ObjectId(userId);
-  education.from = new Date(education.from);
-  education.to = new Date(education.to);
-  let result = await req.db.collection('education').insertOne(education);
+  const result = await req.db.collection('education').insertOne(education);
   return res.json({
     success: true,
     id: result.insertedId
@@ -25,11 +23,9 @@ async function createEducation(req, res) {
 }
 
 async function updateEducation(req, res) {
-  let userId = req.auth.user_id;
-  let educationId = req.swagger.params.id.value;
-  let education = req.swagger.params.education.value || {};
-  education.from = new Date(education.from);
-  education.to = new Date(education.to);
+  const userId = req.auth.user_id;
+  const educationId = req.swagger.params.id.value;
+  const education = _createEducationForDb(req.swagger.params.education.value || {});
   await req.db.collection('education').
       updateOne({_id: ObjectId(educationId), userId: ObjectId(userId)},
           {$set: education});
@@ -47,18 +43,22 @@ async function deleteEducation(req, res) {
 }
 
 async function getEducations(req, res) {
-  let userId = req.auth.user_id;
+  const userId = req.auth.user_id;
   let result = [];
   try {
     result = await req.db.collection('education').
         find({userId: ObjectId(userId)}, {projection: {userId: 0}}).toArray();
     for (let resultKey in result) {
       result[resultKey].id = result[resultKey]._id;
-      result[resultKey].from = (new Date(result[resultKey].from)).toISOString().split('T')[0];
-      result[resultKey].to = (new Date(result[resultKey].to)).toISOString().split('T')[0];
       delete result[resultKey]._id;
     }
   } catch (e) {
   }
   return res.json(result);
+}
+
+function _createEducationForDb(education) {
+  education.from = new Date(education.from);
+  education.to = new Date(education.to);
+  return education;
 }

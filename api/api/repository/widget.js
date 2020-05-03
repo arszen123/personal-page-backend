@@ -10,6 +10,9 @@ async function deleteWidget(db, userId, entityId, entityType) {
   const page = await db.collection('page').findOne({
     userId: ObjectId(userId),
   });
+  if (page === null) {
+    return;
+  }
   const oldWidgets = page.page;
   const newWidgets = [];
   for (let id in oldWidgets) {

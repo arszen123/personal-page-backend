@@ -12,14 +12,10 @@ module.exports = {
 };
 
 async function createWorkExperience(req, res) {
-  let userId = req.auth.user_id;
-  let experience = req.swagger.params.experience.value || {};
+  const userId = req.auth.user_id;
+  const experience = _createExperienceForDb(req.swagger.params.experience.value || {});
   experience.userId = ObjectId(userId);
-  experience.from = new Date(experience.from);
-  if (experience.to) {
-    experience.to = new Date(experience.to);
-  }
-  let result = await req.db.collection('experience').insertOne(experience);
+  const result = await req.db.collection('experience').insertOne(experience);
   return res.json({
     success: true,
     id: result.insertedId
@@ -27,9 +23,10 @@ async function createWorkExperience(req, res) {
 }
 
 async function updateWorkExperience(req, res) {
-  let userId = req.auth.user_id;
-  let experienceId = req.swagger.params.id.value;
-  let experience = req.swagger.params.experience.value || {};
+  const userId = req.auth.user_id;
+  const experienceId = req.swagger.params.id.value;
+  const experience = _createExperienceForDb(req.swagger.params.experience.value || {});
+
   await req.db.collection('experience').
       updateOne({_id: ObjectId(experienceId), userId: ObjectId(userId)},
           {$set: experience});
@@ -37,8 +34,8 @@ async function updateWorkExperience(req, res) {
 }
 
 async function deleteWorkExperience(req, res) {
-  let userId = req.auth.user_id;
-  let experienceId = req.swagger.params.id.value;
+  const userId = req.auth.user_id;
+  const experienceId = req.swagger.params.id.value;
   await req.db.collection('experience').
       deleteOne({_id: ObjectId(experienceId), userId: ObjectId(userId)});
   await WidgetRepository.deleteWidget(req.db, userId, experienceId, 'experience');
@@ -46,7 +43,7 @@ async function deleteWorkExperience(req, res) {
 }
 
 async function getWorkExperiences(req, res) {
-  let userId = req.auth.user_id;
+  const userId = req.auth.user_id;
   let result = [];
   try {
     result = await req.db.collection('experience').
@@ -58,4 +55,18 @@ async function getWorkExperiences(req, res) {
   } catch (e) {
   }
   return res.json(result);
+}
+
+function _createExperienceForDb(experience) {
+  delete experience.id;
+  if (experience.from) {
+    experience.from = new Date(experience.from);
+  }
+  if (experience.to) {
+    experience.to = new Date(experience.to);
+  }
+  if (experience.is_current) {
+    delete experience.to;
+  }
+  return experience;
 }

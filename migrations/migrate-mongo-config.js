@@ -2,14 +2,12 @@
 
 const config = {
   mongodb: {
-    // TODO Change (or review) the url to your MongoDB:
     // url: "mongodb://127.0.0.1:27017/?gssapiServiceName=mongodb",
     url: "mongodb://127.0.0.1:27017",
     // url: 'mongodb://' + process.env.DB_URI + ':' + process.env.DB_ PORT,
     // url: 'mongodb://db:27017',
 
 
-    // TODO Change this to your database name:
     databaseName: process.env.DB_NAME || 'dbname',
 
     options: {

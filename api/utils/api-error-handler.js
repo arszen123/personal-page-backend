@@ -16,7 +16,6 @@ function apiErrorHandler(err, req, res) {
   };
 
   // show the stacktrace when not in production
-  // TODO: make this an option
   if (!production) body.stack = err.stack;
 
   // internal server errors

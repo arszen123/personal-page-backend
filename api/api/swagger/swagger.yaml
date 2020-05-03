@@ -712,6 +712,31 @@ paths:
           description: General error
           schema:
             $ref: '#/definitions/ErrorResponse'
+  /page/{id}/download:
+    x-swagger-router-controller: page
+    get:
+      summary: Get user page to view
+      operationId: downloadCv
+      produces:
+        - application/pdf
+      tags:
+        - page
+      security:
+        - Page: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: User page settings
+          schema:
+            type: file
+        400:
+          description: General error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
   /page/{id}/exists:
     x-swagger-router-controller: page
     get:
@@ -965,10 +990,8 @@ definitions:
         type: string
       from:
         type: string
-        format: date
       to:
         type: string
-        format: date
   EducationResponse:
     allOf:
       - type: object
