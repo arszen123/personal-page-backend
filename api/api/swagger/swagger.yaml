@@ -30,12 +30,12 @@ securityDefinitions:
   OAuth2:
     type: oauth2
     flow: accessCode
-    authorizationUrl: http://pp.devel/oauth/authorize
-    tokenUrl: https://pp.devel:8080/oauth/authorize
+    authorizationUrl: http://personalpage-43b94.web.app/oauth/authorize
+    tokenUrl: https://pp-api123.herokuapp.com/oauth/authorize
     scopes:
       read: Grants read access
-      write: Grants write access
-      admin: Grants access to admin operations
+#      write: Grants write access
+#      admin: Grants access to admin operations
 tags:
   - name: auth
     description: Authenticate the user
