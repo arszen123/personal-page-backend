@@ -4,6 +4,8 @@
 *   Full of vulnerability and can't migrate up.
 * */
 require('./utils/hack');
+const dotenv = require('dotenv');
+dotenv.config();
 const SwaggerExpress = require('swagger-express-mw');
 const express = require('express');
 const app = express();
@@ -11,12 +13,10 @@ const swaggerUi = require('swagger-ui-express');
 const dbExpress = require('./utils/db');
 const errorHandler = require('./utils/api-error-handler');
 module.exports = app; // for testing
-const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const swaggerSecurityHandlers = require('./utils/auth-gates');
 const InitJwt = require('./utils/init-jwt');
-dotenv.config();
 
 InitJwt.init();
 
@@ -40,11 +40,15 @@ app.use((req, res, next) => {
   res.oJson = res.json;
   res.oSend = res.send;
   res.json = function() {
-    req.dbClient.close();
+    if (req.dbClient) {
+      req.dbClient.close();
+    }
     this.oJson(...arguments);
   };
   res.send = function() {
-    req.dbClient.close();
+    if (req.dbClient) {
+      req.dbClient.close();
+    }
     this.oSend(...arguments);
   };
   next();

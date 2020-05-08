@@ -3,13 +3,13 @@ info:
   version: "0.0.1"
   title: Personal Page APP
 # during dev, should point to your local machine
-host: pp.devel:8080
+host: pp-api123.herokuapp.com
 ## basePath prefixes all resource paths
 basePath: /
 ##
 schemes:
   # tip: remove http to make production-grade
-  - http
+#  - http
   - https
 # format of bodies a client can send (Content-Type)
 consumes:

@@ -2,7 +2,7 @@
 
 const APIError = require('../exceptions/api-exception');
 const ObjectId = require('mongodb').ObjectId;
-const fs = require('fs');
+const fs = require('../services/file-service');
 const pdf = require('html-pdf');
 const path = require("path");
 const CvBuilderService = require('../services/cv-builder-service');
@@ -104,7 +104,10 @@ async function downloadCv(req, res) {
   const cvBuilder = new CvBuilderService(user, userId, page.pageRes);
 
   const filename = (user.first_name + '_' + user.last_name).replace(/[\W]+/g,"").toLowerCase();
-  cvBuilder.buildPDF().toStream((err, stream) => {
+  (await cvBuilder.buildPDF()).toStream((err, stream) => {
+    if (err) {
+      return res.json({success: false, error_code: 'internal_server_error'});
+    }
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=${filename}.pdf`);
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
@@ -154,11 +157,10 @@ async function _getPageResponse(db, pageElements, userId) {
     _id: userIdObjId,
   }, {projection: {_id: 0, details: 1}})).details;
 
-  const basePath = './data/profile_picture';
   try {
-    if (fs.existsSync(`${basePath}/${userId}.png`)) {
-      user.profile_picture = process.env.API_URL +
-          `/profile_picture/${userId}.png`;
+    const imgUrl = await fs.getUrl(`${userId}.png`);
+    if (imgUrl) {
+      user.profile_picture = imgUrl;
     }
   } catch (e) {}
   return {pageRes, user};

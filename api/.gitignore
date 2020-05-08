@@ -35,5 +35,5 @@ config/runtime.yaml
 
 # Env file
 .env
-
+.env.prod
 data

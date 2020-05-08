@@ -6,7 +6,7 @@ const PasswordHelper = require('../helpers/password-helper');
 const AuthService = require('../services/auth-service');
 const ObjectParser = require('../utils/object-parser');
 const EmailService = require('../services/email-service');
-const fs = require('fs');
+const fs = require('../services/file-service');
 
 module.exports = {
   createUser,
@@ -109,19 +109,18 @@ async function updateUserDetails(req, res) {
           },
         });
     if (userData.profile_picture) {
-      const basePath = './data/profile_picture';
       if (userData.profile_picture === 'delete') {
         await fs.unlink(
-            `${basePath}/${userId}.png`,
+            `${userId}.png`,
             (err, data) => {
               console.log(err);
             },
         );
       } else {
         const imgData = userData.profile_picture.replace(
-            'data:image/png;base64,', '');
+            /data:image\/([a-z]+);base64,/ig, '');
         await fs.writeFile(
-            `${basePath}/${userId}.png`,
+            `${userId}.png`,
             imgData,
             'base64',
             (err, data) => {
@@ -161,10 +160,10 @@ async function getUserDetails(req, res) {
     living_place: userData.details.living_place,
     bio: userData.details.bio,
   };
-  const basePath = './data/profile_picture';
   try {
-    if (fs.existsSync(`${basePath}/${userId}.png`)) {
-      result.profile_picture = process.env.API_URL + `/profile_picture/${userId}.png`;
+    const imgUrl = await fs.getUrl(`${userId}.png`);
+    if (imgUrl) {
+      result.profile_picture = imgUrl;
     }
   } catch (e) {}
   return res.json(result);

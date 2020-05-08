@@ -105,9 +105,13 @@ module.exports = {
         req.headers.authorization.indexOf('Basic ') === -1
     );
     let pageId = req.swagger.params.id.value;
-    let page = await req.db.collection('page').findOne({
-      'security.page_id': pageId,
-    });
+    let page = null;
+    try {
+      page = await req.db.collection('page').findOne({
+        'security.page_id': pageId,
+      });
+    } catch (e) {
+    }
     // add the page to the request. We dont want to query it again.
     req.page = page;
     // delete req.page.security;

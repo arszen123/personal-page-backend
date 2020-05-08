@@ -1,6 +1,7 @@
 'use strict';
 
 const http = require('http');
+const https = require('https');
 const querystring = require('querystring');
 const _ = require('lodash');
 
@@ -52,7 +53,7 @@ function doRequest({options, postData}, valueFn, errorFn) {
     port: process.env.AUTH_API_PORT,
     ...options
   };
-  const request = http.request(requestOptions, (resIn) => {
+  const request = https.request(requestOptions, (resIn) => {
     let body = '';
     resIn.on('data', (chunk) => {
       body += chunk;
@@ -66,6 +67,7 @@ function doRequest({options, postData}, valueFn, errorFn) {
   });
 
   request.on('error', (e) => {
+    console.log(e);
     if (typeof errorFn === 'function') {
       errorFn({
         result: {

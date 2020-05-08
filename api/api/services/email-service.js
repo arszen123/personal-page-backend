@@ -1,7 +1,19 @@
 'use strict';
 const nodemailer = require('nodemailer');
-const defaultFrom = '"Personal Page" <noreply@personal-page.com>';
 const subjectPrefix = 'Personal Page - ';
+
+const defaultOptions = {
+  from: `"Personal Page" <${process.env.MAIL_DEFAULT_FROM}>`,
+  host: process.env.MAIL_HOST,
+  port: process.env.MAIL_PORT,
+};
+
+if (typeof process.env.MAIL_AUTH_USERNAME !== 'undefined') {
+  defaultOptions.auth = {
+    user: process.env.MAIL_AUTH_USERNAME,
+    pass: process.env.MAIL_AUTH_PASSWORD,
+  }
+}
 
 class EmailService {
   async sendRegistrationMail(user) {
@@ -50,7 +62,7 @@ class EmailService {
       mail.subject = subjectPrefix + mail.subject;
       mail.html = `<html><head></head><body>${mail.html}</body></html>`;
       return transporter.sendMail({
-        from: defaultFrom,
+        ...defaultOptions,
         ...mail,
       });
     } catch (e) {

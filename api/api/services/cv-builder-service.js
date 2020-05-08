@@ -1,8 +1,7 @@
 'use strict';
 
-const fs = require('fs');
+const fs = require('../services/file-service');
 const pdf = require('html-pdf');
-const path = require("path");
 const Languages = require('languages');
 
 module.exports = class CvBuilderService {
@@ -12,8 +11,8 @@ module.exports = class CvBuilderService {
     this.userId = userId;
   }
 
-  buildPDF() {
-    return pdf.create(this.buildHtml(), {
+  async buildPDF() {
+    return pdf.create(await this.buildHtml(), {
       'format': 'A4',
       'border': {
         'top': '25px',
@@ -24,30 +23,32 @@ module.exports = class CvBuilderService {
     });
   }
 
-  buildHtml() {
-    return `<html>${this._createHeader()}${this._createBody()}${this._createFooter()}</html>`;
+  async buildHtml() {
+    return `<html>${this._createHeader()}${await this._createBody()}${this._createFooter()}</html>`;
   }
 
-  _createBody() {
+  async _createBody() {
     const data = this._initData();
     let res = '';
     let contentRes = '';
-    res += this._createBodyHeader(data['contact']);
+    res += await this._createBodyHeader(data['contact']);
     contentRes += this._createPersonalInformation();
     contentRes += this._createEducations(data['education']);
     contentRes += this._createExperiences(data['experience']);
     contentRes += this._createLanguage(data['language']);
     contentRes += this._createSkills(data['skill']);
 
+    contentRes = this._removeFileAccess(contentRes);
+
     return res + `<div id="content">${contentRes}</div>`;
   }
 
-  _createBodyHeader(contacts) {
-    const basePath = './data/profile_picture';
+  async _createBodyHeader(contacts) {
     let imgSrc = null;
     try {
-      if (fs.existsSync(`${basePath}/${this.userId}.png`)) {
-        imgSrc = 'file://' + path.resolve(`${basePath}/${this.userId}.png`);
+      imgSrc = await fs.read(`${this.userId}.png`);
+      if (imgSrc !== null) {
+        imgSrc = 'data:image/png;base64,' + imgSrc.toString('base64');
       }
     } catch (e) {
     }
@@ -63,14 +64,14 @@ module.exports = class CvBuilderService {
       }
     }
     const contactHtml = contactHtmls.join('');
-    return `
+    return this._removeFileAccess(`
 <div id="header">
     <div id="data-section">
         <h1>${this.user.first_name} ${this.user.last_name}</h1>
         ${contactHtml}
-    </div>
-    ${img}
-</div>`;
+    </div>`)
+    + img + this._removeFileAccess(`
+</div>`);
   }
 
   _createPersonalInformation() {
@@ -322,5 +323,9 @@ module.exports = class CvBuilderService {
 
   _ucfirst(text) {
     return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  _removeFileAccess(text) {
+    return text.split('file://').join('file : \/ \/ ');
   }
 };

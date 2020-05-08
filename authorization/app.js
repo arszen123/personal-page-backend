@@ -1,12 +1,12 @@
 const express = require('express');
 const app = express();
 const dir = __dirname;
+const dotenv = require('dotenv');
+dotenv.config();
 const hbs = require('express-handlebars');
 const session = require('express-session');
 const dbMW = require('./utils/db');
 const bodyParser = require('body-parser');
-const dotenv = require('dotenv');
-dotenv.config();
 
 const appRouter = require('./routes/app')(getRenderBaseOptions);
 const authRouter = require('./routes/auth')(getRenderBaseOptions);
@@ -55,4 +55,4 @@ function getRenderBaseOptions(req) {
 }
 
 app.use(dbMW.closeDbConnection);
-app.listen(process.env.APP_PORT);
+app.listen(process.env.PORT);

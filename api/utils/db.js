@@ -1,16 +1,12 @@
 const MongoClient = require('mongodb').MongoClient;
 
-// Connection URL
-const url = `mongodb://${process.env.DB_URI}:${process.env.DB_PORT}`;
 
+const url = `mongodb+srv://${process.env.DB_AUTH_USERNAME}:${process.env.DB_AUTH_PASSWORD}@${process.env.DB_URI}`;
 // Database Name
 const dbName = process.env.DB_NAME;
 
 const options = {
-  auth: {
-    user: process.env.DB_AUTH_USERNAME,
-    password: process.env.DB_AUTH_PASSWORD,
-  }
+  useNewUrlParser: true
 };
 
 module.exports = {
